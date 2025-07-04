@@ -858,25 +858,29 @@ class TestDateTime:
                          delta)
 
         # Check that loading pickles from 1.6 works
-        pkl = b"cnumpy\ndtype\np0\n(S'M8'\np1\nI0\nI1\ntp2\nRp3\n"\
-              b"(I4\nS'<'\np4\nNNNI-1\nI-1\nI0\n((dp5\n(S'D'\np6\n"\
-              b"I7\nI1\nI1\ntp7\ntp8\ntp9\nb."
-        assert_equal(pickle.loads(pkl), np.dtype('<M8[7D]'))
-        pkl = b"cnumpy\ndtype\np0\n(S'M8'\np1\nI0\nI1\ntp2\nRp3\n"\
-              b"(I4\nS'<'\np4\nNNNI-1\nI-1\nI0\n((dp5\n(S'W'\np6\n"\
-              b"I1\nI1\nI1\ntp7\ntp8\ntp9\nb."
-        assert_equal(pickle.loads(pkl), np.dtype('<M8[W]'))
-        pkl = b"cnumpy\ndtype\np0\n(S'M8'\np1\nI0\nI1\ntp2\nRp3\n"\
-              b"(I4\nS'>'\np4\nNNNI-1\nI-1\nI0\n((dp5\n(S'us'\np6\n"\
-              b"I1\nI1\nI1\ntp7\ntp8\ntp9\nb."
-        assert_equal(pickle.loads(pkl), np.dtype('>M8[us]'))
+        with pytest.warns(np.exceptions.VisibleDeprecationWarning,
+                match=r".*align should be passed"):
+            pkl = b"cnumpy\ndtype\np0\n(S'M8'\np1\nI0\nI1\ntp2\nRp3\n"\
+                b"(I4\nS'<'\np4\nNNNI-1\nI-1\nI0\n((dp5\n(S'D'\np6\n"\
+                b"I7\nI1\nI1\ntp7\ntp8\ntp9\nb."
+            assert_equal(pickle.loads(pkl), np.dtype('<M8[7D]'))
+            pkl = b"cnumpy\ndtype\np0\n(S'M8'\np1\nI0\nI1\ntp2\nRp3\n"\
+                b"(I4\nS'<'\np4\nNNNI-1\nI-1\nI0\n((dp5\n(S'W'\np6\n"\
+                b"I1\nI1\nI1\ntp7\ntp8\ntp9\nb."
+            assert_equal(pickle.loads(pkl), np.dtype('<M8[W]'))
+            pkl = b"cnumpy\ndtype\np0\n(S'M8'\np1\nI0\nI1\ntp2\nRp3\n"\
+                b"(I4\nS'>'\np4\nNNNI-1\nI-1\nI0\n((dp5\n(S'us'\np6\n"\
+                b"I1\nI1\nI1\ntp7\ntp8\ntp9\nb."
+            assert_equal(pickle.loads(pkl), np.dtype('>M8[us]'))
 
     def test_setstate(self):
         "Verify that datetime dtype __setstate__ can handle bad arguments"
         dt = np.dtype('>M8[us]')
-        assert_raises(ValueError, dt.__setstate__, (4, '>', None, None, None, -1, -1, 0, 1))
+        assert_raises(ValueError, dt.__setstate__,
+                      (4, '>', None, None, None, -1, -1, 0, 1))
         assert_(dt.__reduce__()[2] == np.dtype('>M8[us]').__reduce__()[2])
-        assert_raises(TypeError, dt.__setstate__, (4, '>', None, None, None, -1, -1, 0, ({}, 'xxx')))
+        assert_raises(TypeError, dt.__setstate__,
+                      (4, '>', None, None, None, -1, -1, 0, ({}, 'xxx')))
         assert_(dt.__reduce__()[2] == np.dtype('>M8[us]').__reduce__()[2])
 
     def test_dtype_promotion(self):
